@@ -1,0 +1,71 @@
+#Python project: An insurance compnay wants to check if customers who want the do
+#a renewal are eligible for a discount.
+import pyinputplus as pyip
+import re
+import openpyxl
+import time
+
+#canadian phone number pattern to use with regex (3 numbers, dash, 3 numbers, dash, 4 numbers):
+phonePattern = r"^\d{3}-\d{3}-\d{4}$"
+regexObject = re.compile(phonePattern)
+#defining a function that will ask the employee password, open the excel file,
+#and write to text file the data needed.
+def checkXlFileAndWriteText():
+    #asking the employee his password, if not provided correctly the input validation will not let any person access the program.
+    userPassword = " "
+    #the loop with continue asking for the password untill the correct one is inputed which is 7744(negative logic).
+    while not (userPassword == 7744):
+        userPassword = pyip.inputInt("Enter your employee password please:")
+    #starting to count time - to know how much it took the user to complete the task from the moment he logged in.
+    startTime = time.time()
+    #promting the user to input the excel file path.
+    customersFilePath = pyip.inputFilepath("Type the file directory location please:")
+    #opening the excel file and showing the appropriate message.
+    try:
+        testSheet = openpyxl.load_workbook(customersFilePath)
+        sheet = testSheet.active
+        print("You have opened the customers excel file")
+    except FileNotFoundError:
+        print("cant find file")
+    #after opening the excel file, the program will create a text file and use it in write mode in the following directory.
+    txtFile = open("C:\\Users\\chrys\\Documents\\Georgian\\Fall2024\\Python\\Final Project\\eligibleText.txt", "w")
+    #creating an empty list for eligible customers
+    eligibleCustomers = []
+    try:
+        #looping to line 50 (excluding line 51).
+        for row in range(1, 51):
+            #accidents column is in column E of the file, looping through it to find the values
+            accidents = sheet["E" + str(row)].value
+            #name column is in column A of the file, looping through it to find the values
+            name = sheet["A" + str(row)].value
+            #phone column is in column D of the file, looping through it to find the values
+            phone = sheet["D" + str(row)].value
+            #type casting the phone value to String in order to make comparison later in the program, other wise an error occurrs
+            phone = str(phone)
+            #type casting the accidents value to String in order to make comparison later in the program, other wise an error occurrs
+            accidents = str(accidents)
+            #setting tooMuchAccidents as the comparison value (only less than 2 accidents will qualify as eligible customers).
+            tooMuchAccidents = 2
+            #type casting to string in order to make the comparison possible( string to string, otherwise it will now work).
+            tooMuchAccidents = str(tooMuchAccidents)
+            #checking if the customer has fewer than 2 accidents and a valid phone number. Customers without valid phone format will not be added.
+            if accidents < tooMuchAccidents and regexObject.match(phone):
+                #writing the eligible customer details to the text file (name and phone number are enough for the user to contact them).
+                txtFile.write("Name:" + " " + name + " " + "Phone:" + " " + phone + '\n')
+                #storing the eligible customers details inside the list created in line 37.
+                #this will be used in the console as a display for the user to remind the names of the customers.
+                eligibleCustomers.append("Name:" + " " + name + " " + "Phone:" + " " + phone)
+        #displaying the list created in the console, showing the names without the numbers.
+        for i in eligibleCustomers:
+            print(i[:12])
+    #the program will always close the text file, no matter what happened during use(always executed).
+    finally:
+        #closing the file.
+        txtFile.close()
+    #counting the time the entire program ran, after that calculating the time it took the user since he put the correct password and started using the program.
+    endTime = time.time()
+    totalTime = endTime - startTime
+    #type casting the totalTime value to string and printing it for the user to see.
+    print("it took you:" + str(totalTime) + "to complete the eligibilty test")
+#calling the function.
+checkXlFileAndWriteText()
